@@ -1,0 +1,33 @@
+name: Get JSON property 
+description: Action to get a (default) property from a JSON file
+
+inputs:
+  json-file:
+    description: The JSON file to read
+    required: true
+  property:
+    description: The property to extract
+    required: true
+  default:
+    description: Default value if property does not exist
+    required: false
+outputs:
+  value:
+    description: Property value
+    value: ${{ steps.result.outputs.value }}
+
+runs:
+  using: composite
+  steps:
+
+    - run: echo "VALUE=${{ inputs.default }}" >> $GITHUB_ENV
+      if: inputs.default != ''
+
+    - run: echo "::set-output name=value::`jq -M -c '.${{ inputs.property }}' ${{ inputs.json-file }}`"
+      id: property
+
+    - run: echo "VALUE=${{ steps.property.outputs.value }}" >> $GITHUB_ENV
+      if: steps.property.outputs.value != ''
+
+    - run: echo "::set-output name=value::${{ env.VALUE }}"
+      id: result
